@@ -8,24 +8,29 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/customer", session({ secret: "fingerprint_customer", resave: true, saveUninitialized: true }));
+// Set up session middleware
+app.use("/customer", session({ 
+    secret: "fingerprint_customer", 
+    resave: true, 
+    saveUninitialized: true 
+}));
 
+// Authentication middleware
 app.use("/customer/auth/*", function auth(req, res, next) {
-    //Write the authenication mechanism here
-    // Verificar si existe un token en la sesión
+    // Check if token exists in session
     if (req.session.authorization) {
         const token = req.session.authorization['accessToken'];
 
-        // Verificar el token JWT
+        // Verify the JWT token
         jwt.verify(token, "fingerprint_customer", (err, user) => {
             if (err) {
-                return res.status(403).json({ message: "Usuario no autenticado" });
+                return res.status(403).json({ message: "User not authenticated" });
             }
-            req.user = user; // Guardar los datos del usuario en la solicitud
-            next(); // Continuar con el siguiente middleware/ruta
+            req.user = user; // Store user info in request
+            next(); // Proceed to the next middleware/route
         });
     } else {
-        return res.status(403).json({ message: "Usuario no logueado" });
+        return res.status(403).json({ message: "User not logged in" });
     }
 });
 
